@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
+	"log"
 )
 
 type Config struct {
@@ -37,10 +37,14 @@ func LoadConfig(cfg *Config) {
 	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./..")
-	_ = viper.ReadInConfig()
-	err := viper.Unmarshal(cfg)
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalf("Missing mqtt_lorawan_consumer.toml-file in directory . or ..")
+	}
+
+	err = viper.Unmarshal(cfg)
 
 	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		log.Fatalf("Fatal error config file: %s \n", err)
 	}
 }

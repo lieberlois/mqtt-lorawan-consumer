@@ -3,6 +3,6 @@ services:
   mqtt_builder:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-build
     volumes:
       - ./:/app
