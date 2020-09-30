@@ -18,7 +18,7 @@ func ConnectToMQTT(cfg config.Mqtt) mqtt.Client {
 	for !token.WaitTimeout(3 * time.Second) {
 	}
 	if err := token.Error(); err != nil {
-		log.Fatalf("Failed to connect to MQTT Broker at %v", cfg.Url)
+		log.Fatalf("Failed to connect to MQTT Broker at %v, %s", cfg.Url, err.Error())
 	}
 	log.Println("Connected to MQTT Broker...")
 	return client

@@ -7,12 +7,14 @@ import (
 	"log"
 	"mqtt_consumer/config"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 var (
 	ErrInvalidJsonFormat = errors.New("error trying to unmarshal JSON string")
-	ErrCastFailed = errors.New("error parsing to map[string]interface{}")
-	ErrInvalidPayload = errors.New("invalid payload format")
+	ErrCastFailed        = errors.New("error parsing to map[string]interface{}")
+	ErrInvalidPayload    = errors.New("invalid payload format")
 )
 
 type Parser struct {
@@ -37,7 +39,7 @@ func (parser *Parser) StringToJson(jsonIn string) (map[string]interface{}, error
 	if !success {
 		return nil, ErrCastFailed
 	}
-	
+
 	return result, nil
 }
 
@@ -48,7 +50,7 @@ func (parser *Parser) JsonToInfluxLineProtocol(data map[string]interface{}) (str
 	measurement := data[parser.config.MeasurementKey]
 
 	// Tags
-	tagString := ParseMapToLineFormat(data, parser.config.TagsetKey)
+	tagString := ParseListToLineFormat(data, parser.config.TagKeys)
 
 	if len(tagString) > 0 {
 		tagString = "," + tagString
@@ -67,7 +69,7 @@ func (parser *Parser) JsonToInfluxLineProtocol(data map[string]interface{}) (str
 
 func ParseMapToLineFormat(data map[string]interface{}, key string) string {
 	var result string
-	
+
 	if val, ok := data[key]; ok {
 		dataMap, success := val.(map[string]interface{})
 
@@ -86,10 +88,39 @@ func ParseMapToLineFormat(data map[string]interface{}, key string) string {
 				if counter > 0 {
 					result += ","
 				}
+				if strings.Contains(valString, " ") {
+					valString = strconv.Quote(valString)
+				}
 				result += fmt.Sprintf("%s=%s", key, valString)
 				counter += 1
 			}
 		}
-	} 
+	}
+	return result
+}
+
+
+func ParseListToLineFormat(data map[string]interface{}, keys []string) string {
+	var result string
+
+	sort.Strings(keys)
+	counter := 0
+
+	for _, key := range keys {
+		if val, ok := data[key]; ok {
+			valString := fmt.Sprintf("%v", val)
+
+			if counter > 0 {
+				result += ","
+			}
+			if strings.Contains(valString, " ") {
+				valString = strconv.Quote(valString)
+			}
+			result += fmt.Sprintf("%s=%s", key, valString)
+			counter += 1
+
+		}
+	}
+
 	return result
 }

@@ -56,9 +56,9 @@ func handleMQTTSubscription(client mqtt.Client, parser *parser.Parser, persistDa
 			log.Println(err.Error())
 			return
 		}
-		log.Printf("Received data: %s", lineProtocol)
 
 		if !persistData {
+			log.Printf("Received data: %s", lineProtocol)
 			return
 		}
 		statusCode, status, err := postDataToInflux(lineProtocol)
@@ -67,7 +67,7 @@ func handleMQTTSubscription(client mqtt.Client, parser *parser.Parser, persistDa
 		} else {
 			switch statusCode {
 			case 204:
-				log.Printf("Data written to InfluxDB.")
+				log.Printf("Wrote %s to InfluxDB", lineProtocol)
 			default:
 				log.Printf("Something went wrong writing to the database: %s", status)
 			}

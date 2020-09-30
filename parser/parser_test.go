@@ -6,6 +6,15 @@ import (
 	"testing"
 )
 
+func TestNewParser(t *testing.T) {
+	parserCfg := config.Parser{}
+	parser := NewParser(parserCfg)
+
+	if parser == nil {
+		t.Errorf("Error trying to create a new parser")
+	}
+}
+
 func TestStringToJson(t *testing.T) {
 	parser := Parser{config.Parser{}}
 
@@ -29,7 +38,7 @@ func TestStringToJson(t *testing.T) {
 
 		_, err := parser.StringToJson(s)
 
-		if err == nil {
+		if err == ErrCastFailed {
 			t.Errorf("expected error when parsing invalid JSON string %s", s)
 		}
 	})
@@ -38,21 +47,22 @@ func TestStringToJson(t *testing.T) {
 func TestJsonToInfluxLineProtocol(t *testing.T) {
 	cfg := config.Parser{
 		MeasurementKey: "dev_id",
-		TagsetKey:      "attributes",
+		TagKeys:        []string{"attribute1", "attribute2"},
 		ValuesKey:      "payload_fields",
 	}
 	parser := Parser{cfg}
 
-	t.Run("attributes and payload both parsed", func(t *testing.T) {
+	t.Run("attributes and payload both parsed correctly", func(t *testing.T) {
 		json := map[string]interface{}{
 			"app_id":         "some-name",
 			"dev_id":         "device_name",
 			"key":            "value",
+			"attribute1":     "tagval1",
+			"attribute2":     "tagval 2",
 			"payload_fields": map[string]interface{}{"value1": 21.39892578125, "value2": "hello"},
-			"attributes":     map[string]interface{}{"string": "world", "number": 123, "bool": true},
 		}
 
-		expected := "device_name,bool=true,number=123,string=world value1=21.39892578125,value2=hello"
+		expected := "device_name,attribute1=tagval1,attribute2=\"tagval 2\" value1=21.39892578125,value2=hello"
 		actual, _ := parser.JsonToInfluxLineProtocol(json)
 
 		if expected != actual {
@@ -60,7 +70,7 @@ func TestJsonToInfluxLineProtocol(t *testing.T) {
 		}
 	})
 
-	t.Run("only payload gets parsed", func (t *testing.T) {
+	t.Run("only payload gets parsed", func(t *testing.T) {
 		json := map[string]interface{}{
 			"app_id":         "some-name",
 			"dev_id":         "device_name",
@@ -76,11 +86,11 @@ func TestJsonToInfluxLineProtocol(t *testing.T) {
 		}
 	})
 
-	t.Run("missing payload results in error", func (t *testing.T) {
+	t.Run("missing payload results in error", func(t *testing.T) {
 		json := map[string]interface{}{
-			"app_id":         "some-name",
-			"dev_id":         "device_name",
-			"key":            "value",
+			"app_id": "some-name",
+			"dev_id": "device_name",
+			"key":    "value",
 		}
 
 		_, err := parser.JsonToInfluxLineProtocol(json)

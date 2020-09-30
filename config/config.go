@@ -26,15 +26,16 @@ type Influx struct {
 }
 
 type Parser struct {
-	MeasurementKey string `mapstructure:"measurement_key"`
-	TagsetKey      string `mapstructure:"tagset_key"`
-	ValuesKey      string `mapstructure:"values_key"`
+	MeasurementKey string   `mapstructure:"measurement_key"`
+	TagKeys        []string `mapstructure:"tag_keys"`
+	ValuesKey      string   `mapstructure:"values_key"`
 }
 
 func LoadConfig(cfg *Config) {
-	viper.SetConfigName("config")
+	viper.SetConfigName("mqtt_lorawan_consumer")
 	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
+	viper.AddConfigPath("./..")
 	_ = viper.ReadInConfig()
 	err := viper.Unmarshal(cfg)
 

@@ -1,5 +1,3 @@
-# Example for TTN
-
 [mqtt_broker]
     url=""
     username=""
@@ -8,7 +6,7 @@
 
 [parser]
     measurement_key=""
-    tagset_key=""
+    tag_keys= [""]
     values_key=""
 
 #[influx_db]
