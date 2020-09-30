@@ -1,0 +1,18 @@
+# Example for TTN
+
+[mqtt_broker]
+    url=""
+    username=""
+    password=""
+    topic=""
+
+[parser]
+    measurement_key=""
+    tagset_key=""
+    values_key=""
+
+#[influx_db]
+#    url=""
+#    database=""
+#    username=""
+#    password=""
