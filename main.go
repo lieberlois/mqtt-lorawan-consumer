@@ -32,48 +32,45 @@ func main() {
 
 	jsonParser := parser.NewParser(cfg.Parser)
 
-	client := mqttUtils.ConnectToMQTT(cfg.MqttBroker)
-	token := handleMQTTSubscription(client, jsonParser, persistData)
-	token.Wait()
-	if err := token.Error(); err != nil {
-		log.Fatalf("Could not subscribe to MQTT Topic at %v", cfg.MqttBroker)
-	}
+	mqttUtils.ConnectToMQTT(cfg.MqttBroker, getSubscriptionMethod(jsonParser, persistData))
 
 	exitSignal := make(chan os.Signal)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal
 }
 
-func handleMQTTSubscription(client mqtt.Client, parser *parser.Parser, persistData bool) mqtt.Token {
-	token := client.Subscribe(cfg.MqttBroker.Topic, 0, func(client mqtt.Client, msg mqtt.Message) {
-		payload := string(msg.Payload())
-		json, err := parser.StringToJson(payload)
-		if err != nil {
-			log.Printf("Failed to convert %v into a JSON object", payload)
-		}
-		lineProtocol, err := parser.JsonToInfluxLineProtocol(json)
-		if err != nil {
-			log.Println(err.Error())
-			return
-		}
-
-		if !persistData {
-			log.Printf("Received data: %s", lineProtocol)
-			return
-		}
-		statusCode, status, err := postDataToInflux(lineProtocol)
-		if err != nil {
-			log.Printf("Failed to send data %s to the database: %s", lineProtocol, err.Error())
-		} else {
-			switch statusCode {
-			case 204:
-				log.Printf("Wrote %s to InfluxDB", lineProtocol)
-			default:
-				log.Printf("Something went wrong writing to the database: %s", status)
+func getSubscriptionMethod(parser *parser.Parser, persistData bool) func(c mqtt.Client) {
+	return func(client mqtt.Client) {
+		client.Subscribe(cfg.MqttBroker.Topic, 0, func(client mqtt.Client, msg mqtt.Message) {
+			payload := string(msg.Payload())
+			json, err := parser.StringToJson(payload)
+			if err != nil {
+				log.Printf("Failed to convert %v into a JSON object", payload)
 			}
-		}
-	})
-	return token
+			lineProtocol, err := parser.JsonToInfluxLineProtocol(json)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+
+			if !persistData {
+				log.Printf("Received data: %s", lineProtocol)
+				return
+			}
+			statusCode, status, err := postDataToInflux(lineProtocol)
+			if err != nil {
+				log.Printf("Failed to send data %s to the database: %s", lineProtocol, err.Error())
+			} else {
+				switch statusCode {
+				case 204:
+					log.Printf("Wrote %s to InfluxDB", lineProtocol)
+				default:
+					log.Printf("Something went wrong writing to the database: %s", status)
+				}
+			}
+		})
+		log.Println("Connected to MQTT Broker...")
+	}
 }
 
 func postDataToInflux(lineProtocol string) (int, string, error) {

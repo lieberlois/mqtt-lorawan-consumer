@@ -3,6 +3,7 @@
     username=""
     password=""
     topic=""
+    client_id=""
 
 [parser]
     measurement_key=""

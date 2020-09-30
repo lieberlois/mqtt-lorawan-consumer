@@ -99,7 +99,6 @@ func ParseMapToLineFormat(data map[string]interface{}, key string) string {
 	return result
 }
 
-
 func ParseListToLineFormat(data map[string]interface{}, keys []string) string {
 	var result string
 
@@ -109,7 +108,6 @@ func ParseListToLineFormat(data map[string]interface{}, keys []string) string {
 	for _, key := range keys {
 		if val, ok := data[key]; ok {
 			valString := fmt.Sprintf("%v", val)
-
 			if counter > 0 {
 				result += ","
 			}
@@ -118,7 +116,6 @@ func ParseListToLineFormat(data map[string]interface{}, keys []string) string {
 			}
 			result += fmt.Sprintf("%s=%s", key, valString)
 			counter += 1
-
 		}
 	}
 

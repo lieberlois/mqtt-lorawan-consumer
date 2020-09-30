@@ -16,6 +16,7 @@ type Mqtt struct {
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
 	Topic    string `mapstructure:"topic"`
+	ClientId    string `mapstructure:"client_id"`
 }
 
 type Influx struct {
