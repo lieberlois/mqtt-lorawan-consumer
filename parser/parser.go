@@ -52,10 +52,6 @@ func (parser *Parser) JsonToInfluxLineProtocol(data map[string]interface{}) (str
 	// Tags
 	tagString := ParseListToLineFormat(data, parser.config.TagKeys)
 
-	if len(tagString) > 0 {
-		tagString = "," + tagString
-	}
-
 	// Payload
 	payloadString := ParseMapToLineFormat(data, parser.config.ValuesKey)
 
@@ -64,7 +60,7 @@ func (parser *Parser) JsonToInfluxLineProtocol(data map[string]interface{}) (str
 		return "", ErrInvalidPayload
 	}
 
-	return fmt.Sprintf("%s%s %s", measurement, tagString, payloadString), nil
+	return fmt.Sprintf("%s%s %s", measurement, tagString, payloadString[1:]), nil
 }
 
 func ParseMapToLineFormat(data map[string]interface{}, key string) string {
@@ -81,18 +77,14 @@ func ParseMapToLineFormat(data map[string]interface{}, key string) string {
 		sort.Strings(keys)
 
 		if success {
-			counter := 0
 			for _, key := range keys {
 				valString := fmt.Sprintf("%v", dataMap[key])
 
-				if counter > 0 {
-					result += ","
-				}
 				if strings.Contains(valString, " ") {
 					valString = strconv.Quote(valString)
 				}
-				result += fmt.Sprintf("%s=%s", key, valString)
-				counter += 1
+
+				result += fmt.Sprintf(",%s=%s", key, valString)
 			}
 		}
 	}
@@ -103,19 +95,15 @@ func ParseListToLineFormat(data map[string]interface{}, keys []string) string {
 	var result string
 
 	sort.Strings(keys)
-	counter := 0
 
 	for _, key := range keys {
 		if val, ok := data[key]; ok {
 			valString := fmt.Sprintf("%v", val)
-			if counter > 0 {
-				result += ","
-			}
+
 			if strings.Contains(valString, " ") {
 				valString = strconv.Quote(valString)
 			}
-			result += fmt.Sprintf("%s=%s", key, valString)
-			counter += 1
+			result += fmt.Sprintf(",%s=%s", key, valString)
 		}
 	}
 
