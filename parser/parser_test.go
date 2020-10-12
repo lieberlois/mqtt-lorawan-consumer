@@ -59,10 +59,10 @@ func TestJsonToInfluxLineProtocol(t *testing.T) {
 			"key":            "value",
 			"attribute1":     "tagval1",
 			"attribute2":     "tagval 2",
-			"payload_fields": map[string]interface{}{"value1": 21.39892578125, "value2": "hello"},
+			"payload_fields": map[string]interface{}{"value1": 21.39892578125, "value2": "hello world"},
 		}
 
-		expected := "device_name,attribute1=tagval1,attribute2=\"tagval 2\" value1=21.39892578125,value2=hello"
+		expected := "device_name,attribute1=tagval1,attribute2=\"tagval 2\" value1=21.39892578125,value2=\"hello world\""
 		actual, _ := parser.JsonToInfluxLineProtocol(json)
 
 		if expected != actual {

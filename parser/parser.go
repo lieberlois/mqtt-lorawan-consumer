@@ -34,11 +34,7 @@ func (parser *Parser) StringToJson(jsonIn string) (map[string]interface{}, error
 		return nil, ErrInvalidJsonFormat
 	}
 
-	result, success := parsed.(map[string]interface{})
-
-	if !success {
-		return nil, ErrCastFailed
-	}
+	result, _ := parsed.(map[string]interface{})
 
 	return result, nil
 }
